@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin License Manager</title>
+    <style>
+        body { font-family: sans-serif; background: #0f172a; color: #fff; padding: 30px; }
+        .box { background: #1e293b; padding: 20px; border-radius: 8px; margin-bottom: 20px; max-width: 500px; }
+        input, button { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+        button { background: #6366f1; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        button.danger { background: #ef4444; }
+        button.success { background: #22c55e; }
+    </style>
+</head>
+<body>
+    <h2>Hệ Thống Quản Lý License Key</h2>
+
+    <!-- Tạo Key -->
+    <div class="box">
+        <h3>Tạo Key Mới</h3>
+        <input type="text" id="newKey" placeholder="Nhập Mã Key (vd: VIP-KEY-001)">
+        <input type="number" id="days" placeholder="Số ngày sử dụng (vd: 30)">
+        <button onclick="createKey()">Tạo Key</button>
+    </div>
+
+    <!-- Khóa / Mở Key -->
+    <div class="box">
+        <h3>Điều Khiển Từ Xa (Khóa / Mở)</h3>
+        <input type="text" id="manageKey" placeholder="Nhập Key Cần Thao Tác">
+        <button class="danger" onclick="toggleKey(false)">KHÓA KEY NÀY</button>
+        <button class="success" onclick="toggleKey(true)">MỞ KHÓA KEY</button>
+    </div>
+
+    <p id="msg"></p>
+
+    <script>
+        const API_URL = "http://localhost:3000"; // Thay bằng URL Backend của bạn khi deploy
+
+        async function createKey() {
+            const key = document.getElementById('newKey').value;
+            const durationDays = document.getElementById('days').value;
+            const res = await fetch(`${API_URL}/api/admin/create-key`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key, durationDays })
+            });
+            const data = await res.json();
+            document.getElementById('msg').innerText = data.message;
+        }
+
+        async function toggleKey(status) {
+            const key = document.getElementById('manageKey').value;
+            const res = await fetch(`${API_URL}/api/admin/toggle-key`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key, status })
+            });
+            const data = await res.json();
+            document.getElementById('msg').innerText = data.message;
+        }
+    </script>
+</body>
+</html>
