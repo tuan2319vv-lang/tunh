@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Xác Thực Bản Quyền</title>
+    <style>
+        body { font-family: sans-serif; background: #0f172a; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #1e293b; padding: 30px; border-radius: 12px; width: 320px; text-align: center; }
+        input, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 6px; border: none; box-sizing: border-box; }
+        button { background: #6366f1; color: white; font-weight: bold; cursor: pointer; }
+        .error { color: #f87171; margin-top: 10px; }
+        .success { color: #4ade80; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h3>Nhập License Key</h3>
+        <input type="text" id="licenseInput" placeholder="XXXX-XXXX-XXXX">
+        <button onclick="verifyKey()">Kích Hoạt</button>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:3000"; // Thay bằng URL Backend của bạn khi deploy
+
+        // Tự tạo Fingerprint thiết bị đơn giản dựa trên cấu hình trình duyệt
+        function getDeviceId() {
+            let id = localStorage.getItem('device_fingerprint');
+            if (!id) {
+                id = 'DEV-' + btoa(navigator.userAgent + navigator.language + screen.width + x + screen.height).substring(0, 16);
+                localStorage.setItem('device_fingerprint', id);
+            }
+            return id;
+        }
+
+        async function verifyKey() {
+            const key = document.getElementById('licenseInput').value.trim();
+            const deviceId = getDeviceId();
+            const statusDiv = document.getElementById('status');
+
+            statusDiv.innerText = "Đang kiểm tra...";
+            statusDiv.className = "";
+
+            try {
+                const res = await fetch(`${API_URL}/api/client/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key, deviceId })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    statusDiv.className = "success";
+                    statusDiv.innerText = "✓ " + data.message;
+                    // Chuyển hướng sang trang chính sau 1 giây thành công
+                    setTimeout(() => {
+                        alert("Mở khóa trang chính thành công!");
+                    }, 1000);
+                } else {
+                    statusDiv.className = "error";
+                    statusDiv.innerText = "✕ " + data.message;
+                }
+            } catch (err) {
+                statusDiv.className = "error";
+                statusDiv.innerText = "✕ Không thể kết nối tới Server!";
+            }
+        }
+    </script>
+</body>
+</html>
